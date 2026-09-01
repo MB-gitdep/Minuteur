@@ -113,7 +113,7 @@ Consultable directement dans l'application via le bouton `v1.4.0` en haut à dro
 
 ## Licence
 
-Ce projet est distribué sous licence **MIT** — voir le fichier [`LICENSE`](./LICENSE). En résumé : libre d'utilisation, de modification, de distribution et d'usage commercial, sans garantie, à condition de conserver la mention de copyright et la licence dans les copies.
+Ce projet est distribué sous licence **MIT** — voir le fichier [`LICENSE`](LICENSE). En résumé : libre d'utilisation, de modification, de distribution et d'usage commercial, sans garantie, à condition de conserver la mention de copyright et la licence dans les copies.
 
 ## Limitations connues
 

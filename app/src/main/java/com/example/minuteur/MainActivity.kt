@@ -96,24 +96,42 @@ data class SavedTime(val mode: Mode, val ms: Long, val savedAt: Long)
 
 private const val PREFS_NAME = "minuteur_prefs"
 private const val KEY_ENTRIES = "entries"
+private const val MAX_SAVED_ENTRIES = 200 // évite une croissance illimitée du stockage local
 
 private fun loadSavedTimes(prefs: SharedPreferences): List<SavedTime> {
-    val raw = prefs.getString(KEY_ENTRIES, "") ?: ""
-    if (raw.isBlank()) return emptyList()
-    return raw.split("|").mapNotNull { entry ->
-        val parts = entry.split(":")
-        if (parts.size != 3) return@mapNotNull null
-        try {
-            SavedTime(Mode.valueOf(parts[0]), parts[1].toLong(), parts[2].toLong())
-        } catch (_: Exception) {
-            null
-        }
+    return try {
+        val raw = prefs.getString(KEY_ENTRIES, "") ?: ""
+        if (raw.isBlank()) return emptyList()
+        raw.split("|")
+            .mapNotNull { entry ->
+                val parts = entry.split(":")
+                if (parts.size != 3) return@mapNotNull null
+                try {
+                    val modeValue = Mode.valueOf(parts[0])
+                    val ms = parts[1].toLong().coerceIn(0L, 24L * 60 * 60 * 1000) // borne à 24h, rejette les valeurs aberrantes
+                    val savedAt = parts[2].toLong()
+                    SavedTime(modeValue, ms, savedAt)
+                } catch (_: IllegalArgumentException) {
+                    null // entrée corrompue ou mode inconnu : ignorée plutôt que de faire planter l'appli
+                } catch (_: NumberFormatException) {
+                    null
+                }
+            }
+            .take(MAX_SAVED_ENTRIES)
+    } catch (_: Exception) {
+        // Préférences corrompues ou inaccessibles : on repart d'une liste vide plutôt que de crasher
+        emptyList()
     }
 }
 
 private fun persistSavedTimes(prefs: SharedPreferences, list: List<SavedTime>) {
-    val raw = list.joinToString("|") { "${it.mode.name}:${it.ms}:${it.savedAt}" }
-    prefs.edit().putString(KEY_ENTRIES, raw).apply()
+    try {
+        val bounded = list.take(MAX_SAVED_ENTRIES)
+        val raw = bounded.joinToString("|") { "${it.mode.name}:${it.ms}:${it.savedAt}" }
+        prefs.edit().putString(KEY_ENTRIES, raw).apply()
+    } catch (_: Exception) {
+        // Écriture impossible (stockage plein, etc.) : on ignore silencieusement, la session en cours n'est pas affectée
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -175,25 +193,50 @@ fun TimerScreen(onOpenChangelog: () -> Unit) {
 
     var clockTick by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    val prefs = remember { context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE) }
-    val savedTimes = remember { mutableStateListOf<SavedTime>().apply { addAll(loadSavedTimes(prefs)) } }
+    val prefs = remember {
+        try {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        } catch (_: Exception) {
+            null
+        }
+    }
+    val savedTimes = remember {
+        mutableStateListOf<SavedTime>().apply {
+            prefs?.let { addAll(loadSavedTimes(it)) }
+        }
+    }
     var showHistory by remember { mutableStateOf(false) }
 
     val vibrator = remember {
-        context.getSystemService(Vibrator::class.java)
+        try {
+            context.getSystemService(Vibrator::class.java)
+        } catch (_: Exception) {
+            null
+        }
     }
-    val toneGen = remember { ToneGenerator(AudioManager.STREAM_MUSIC, 90) }
+    val toneGen = remember {
+        try {
+            ToneGenerator(AudioManager.STREAM_MUSIC, 90)
+        } catch (_: Exception) {
+            null // certains appareils/émulateurs refusent l'allocation audio : l'appli continue sans bip
+        }
+    }
 
     fun vibrate(pattern: LongArray) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+                vibrator?.vibrate(VibrationEffect.createWaveform(pattern, -1))
             } else {
                 @Suppress("DEPRECATION")
-                vibrator.vibrate(pattern, -1)
+                vibrator?.vibrate(pattern, -1)
             }
         } catch (_: Exception) {
+            // Pas de vibreur, permission refusée, ou appareil non supporté : on ignore silencieusement
         }
+    }
+
+    fun persistIfPossible() {
+        prefs?.let { persistSavedTimes(it, savedTimes) }
     }
 
     fun applyConfig() {
@@ -256,7 +299,7 @@ fun TimerScreen(onOpenChangelog: () -> Unit) {
                     running = false; finished = true
                     timerRemainingMs = 0
                     vibrate(longArrayOf(0, 200, 100, 200, 100, 300))
-                    try { toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 400) } catch (_: Exception) {}
+                    try { toneGen?.startTone(ToneGenerator.TONE_PROP_BEEP, 400) } catch (_: Exception) {}
                     break
                 }
             }
@@ -293,18 +336,21 @@ fun TimerScreen(onOpenChangelog: () -> Unit) {
 
     fun saveCurrentTime() {
         savedTimes.add(0, SavedTime(mode, displayMs, System.currentTimeMillis()))
-        persistSavedTimes(prefs, savedTimes)
+        while (savedTimes.size > MAX_SAVED_ENTRIES) {
+            savedTimes.removeAt(savedTimes.lastIndex)
+        }
+        persistIfPossible()
         vibrate(longArrayOf(0, 20))
     }
 
     fun deleteSavedTime(item: SavedTime) {
         savedTimes.remove(item)
-        persistSavedTimes(prefs, savedTimes)
+        persistIfPossible()
     }
 
     fun clearSavedTimes() {
         savedTimes.clear()
-        persistSavedTimes(prefs, savedTimes)
+        persistIfPossible()
     }
 
     fun loadSavedTime(item: SavedTime) {

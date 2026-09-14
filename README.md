@@ -4,6 +4,12 @@ Application Android native (Kotlin / Jetpack Compose) — chronomètre et minute
 
 **Version actuelle : 1.4.0** · **Licence : MIT**
 
+## Captures d'écran
+
+| Chrono | Minuteur | Mémoire | Changelog |
+|---|---|---|---|
+| ![Chrono](./screenshots/chrono.jpg) | ![Minuteur](./screenshots/minuteur.jpg) | ![Mémoire](./screenshots/memoire.jpg) | ![Changelog](./screenshots/changelog.jpg) |
+
 ---
 
 ## Fonctionnalités

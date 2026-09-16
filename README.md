@@ -6,8 +6,8 @@ Application Android native (Kotlin / Jetpack Compose) — chronomètre et minute
 
 ## Captures d'écran
 
-| Chrono | Minuteur | Mémoire | Changelog |
-|---|---|---|---|
+| Chrono                              | Minuteur                                | Mémoire                               | Changelog                                 |
+|-------------------------------------|-----------------------------------------|---------------------------------------|-------------------------------------------|
 | ![Chrono](./screenshots/chrono.jpg) | ![Minuteur](./screenshots/minuteur.jpg) | ![Mémoire](./screenshots/memoire.jpg) | ![Changelog](./screenshots/changelog.jpg) |
 
 ---
@@ -42,9 +42,9 @@ Application Android native (Kotlin / Jetpack Compose) — chronomètre et minute
 
 ## Permissions utilisées
 
-| Permission | Usage | Portée |
-|---|---|---|
-| `VIBRATE` | Retour haptique (boutons, fin de minuteur) | Locale, sans accès aux données personnelles |
+| Permission | Usage                                      | Portée                                      |
+|------------|--------------------------------------------|---------------------------------------------|
+| `VIBRATE`  | Retour haptique (boutons, fin de minuteur) | Locale, sans accès aux données personnelles |
 
 **Aucune permission réseau, aucune permission de stockage externe, aucun accès aux contacts/localisation/caméra/micro n'est demandé.** L'application fonctionne entièrement hors-ligne.
 
@@ -109,13 +109,13 @@ app/src/main/
 
 Consultable directement dans l'application via le bouton `v1.4.0` en haut à droite de l'écran.
 
-| Version | Contenu |
-|---|---|
-| 1.4.0 | Page Changelog intégrée à l'application |
-| 1.3.0 | Fonction Mémoire (enregistrer/recharger/supprimer des temps, persistance locale), écran maintenu allumé, nouvelle icône |
-| 1.2.0 | Icônes play/pause/reset redessinées en vectoriel (fiabilité multi-appareils) |
-| 1.1.0 | Optimisations internes du code Compose |
-| 1.0.0 | Version initiale : chronomètre, minuteur configurable, pause/reprise/réinitialisation |
+| Version | Contenu                                                                                                                 |
+|---------|-------------------------------------------------------------------------------------------------------------------------|
+| 1.4.0   | Page Changelog intégrée à l'application                                                                                 |
+| 1.3.0   | Fonction Mémoire (enregistrer/recharger/supprimer des temps, persistance locale), écran maintenu allumé, nouvelle icône |
+| 1.2.0   | Icônes play/pause/reset redessinées en vectoriel (fiabilité multi-appareils)                                            |
+| 1.1.0   | Optimisations internes du code Compose                                                                                  |
+| 1.0.0   | Version initiale : chronomètre, minuteur configurable, pause/reprise/réinitialisation                                   |
 
 ## Licence
 
